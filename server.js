@@ -17,11 +17,18 @@ const wss = new SocketServer({ server });
 // Set up a callback that will run when a client connects to the server
 // When a client connects they are assigned a socket, represented by
 // the ws parameter in the callback.
-const buildMessage = (messageString) => {
+const handleMessage = (messageString) => {
   const messageObj = JSON.parse(messageString);
+  switch(messageObj.type) {
+    case "postMessage":
+      messageObj.type = "incomingMessage"
+      break;
+    case "postNotification":
+      messageObj.type = "incomingNotification"
+      break;
+  }
   messageObj["id"] = uuidv4();
   return JSON.stringify(messageObj);
-
 }
 
 const broadcast = (data) => {
@@ -34,7 +41,7 @@ wss.on('connection', (ws) => {
   console.log('Client connected');
 
   ws.onmessage = (event) => {
-    broadcast(buildMessage(event.data));
+    broadcast(handleMessage(event.data));
   };
 
 
